@@ -18,8 +18,9 @@ const PaymentForm = () => {
   const [contact, setContact] = useState("");
   const [email, setEmail] = useState("");
   const receiptRef = useRef();
-
-  const generatePDF = async (details) => {
+  const [tId, settId] = useState("");
+  const [paymentDone, setPaymentDone] = useState(false);
+  const generatePDF = async () => {
     try {
       // Wait for html2canvas to render the receipt with better quality
       const canvas = await html2canvas(receiptRef.current, {
@@ -99,8 +100,9 @@ const PaymentForm = () => {
           transactionId: response.razorpay_payment_id,
           date: new Date().toLocaleString(),
         };
-
-        setTimeout(() => generatePDF(details), 500); // wait for render
+        settId(response.razorpay_payment_id);
+        setPaymentDone(true);
+        setTimeout(() => generatePDF(), 500); // wait for render
         toast.success("Payment successful! Downloading receipt...");
       },
 
@@ -156,7 +158,7 @@ const PaymentForm = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Recipient's Name
+              Payer's Name
             </label>
             <input
               type="text"
@@ -273,21 +275,24 @@ const PaymentForm = () => {
       </form>
 
       <ToastContainer position="top-center" />
-      <div style={{ display: "none" }}>
-        <Receipt
-          ref={receiptRef}
-          paymentDetails={{
-            name,
-            contact,
-            email,
-            address,
-            amount,
-            reason,
-            method: selectedMethod,
-            transactionId: "temp", // overridden in generatePDF
-            date: new Date().toLocaleString(),
-          }}
-        />
+      <div className="mt-8">
+        {" "}
+        {paymentDone && (
+          <Receipt
+            ref={receiptRef}
+            paymentDetails={{
+              name,
+              contact,
+              email,
+              address,
+              amount,
+              reason,
+              method: selectedMethod,
+              transactionId: tId, // overridden in generatePDF
+              date: new Date().toLocaleString(),
+            }}
+          />
+        )}
       </div>
     </div>
   );

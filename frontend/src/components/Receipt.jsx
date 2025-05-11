@@ -17,7 +17,7 @@ const Receipt = React.forwardRef(({ paymentDetails }, ref) => {
 
       <div className="space-y-3 text-sm">
         <p>
-          <span className="font-semibold">Recipient Name:</span>{" "}
+          <span className="font-semibold">Payer Name:</span>{" "}
           {paymentDetails.name}
         </p>
         <p>
@@ -40,7 +40,7 @@ const Receipt = React.forwardRef(({ paymentDetails }, ref) => {
         </p>
         <p>
           <span className="font-semibold">Payment Method:</span>{" "}
-          {paymentDetails.method}
+          {paymentDetails.method.toUpperCase()}
         </p>
         <p>
           <span className="font-semibold">Transaction ID:</span>{" "}
