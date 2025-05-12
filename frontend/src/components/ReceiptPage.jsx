@@ -7,10 +7,11 @@ const ReceiptPage = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
 
-  if (!state) {
-    navigate("/"); 
-    return null;
-  }
+  React.useEffect(() => {
+    if (!state) {
+      navigate("/");
+    }
+  }, [state, navigate]);
 
   return (
     <div className="max-w-2xl mx-auto mt-4">

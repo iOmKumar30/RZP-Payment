@@ -72,7 +72,11 @@ const PaymentForm = () => {
         setSelectedMethod("");
         setContact("");
         setEmail("");
-        navigate("/receipt", { state: details });
+        // delay the navigate a little bit
+        setTimeout(() => {
+          navigate("/receipt", { state: details });
+        }, 1000);
+
         // store the transaction id in the session storage
         sessionStorage.setItem("transaction_id", response.razorpay_payment_id);
         toast.success("Payment successful! Receipt Generated...");
@@ -231,7 +235,7 @@ const PaymentForm = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className={`transition-all w-full py-3 rounded-lg text-white font-semibold flex items-center justify-center
+          className={`transition-all w-full py-3 rounded-lg text-white font-semibold flex items-center justify-center cursor-pointer
       ${
         isLoading
           ? "bg-gray-400 cursor-not-allowed"
