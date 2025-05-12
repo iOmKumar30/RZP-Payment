@@ -73,9 +73,8 @@ const PaymentForm = () => {
         setContact("");
         setEmail("");
         // delay the navigate a little bit
-        setTimeout(() => {
-          navigate("/receipt", { state: details });
-        }, 1000);
+
+        navigate("/receipt", { state: details });
 
         // store the transaction id in the session storage
         sessionStorage.setItem("transaction_id", response.razorpay_payment_id);
