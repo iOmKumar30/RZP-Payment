@@ -6,8 +6,7 @@ import "./PaymentForm.css"; // Custom CSS for animations
 import { loadRazorpay } from "../utils/loadRazorpay";
 import axios from "axios";
 import Receipt from "./Receipt";
-import html2canvas from "html2canvas-pro";
-import jsPDF from "jspdf";
+
 const PaymentForm = () => {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -20,44 +19,6 @@ const PaymentForm = () => {
   const receiptRef = useRef();
   const [tId, settId] = useState("");
   const [paymentDone, setPaymentDone] = useState(false);
-  const generatePDF = async () => {
-    try {
-      // Wait for html2canvas to render the receipt with better quality
-      const canvas = await html2canvas(receiptRef.current, {
-        logging: true,
-        scale: 2, // Increase resolution
-        useCORS: true, // Allow cross-origin resources (images, etc.)
-      });
-
-      // Ensure that the canvas is rendered
-      if (!canvas || !canvas.toDataURL) {
-        console.error("Failed to render canvas");
-        return;
-      }
-
-      const imgData = canvas.toDataURL("image/png");
-
-      // Check if image data is valid
-      if (
-        !imgData ||
-        imgData.includes("data:image/png;base64,iVBORw0KGgoAAAANSUhEUg")
-      ) {
-        console.error("Invalid image data");
-        return;
-      }
-
-      const pdf = new jsPDF();
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      // Add the image to the PDF
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save("payment-receipt.pdf");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate the receipt.");
-    }
-  };
 
   const handlePayment = async () => {
     const res = await loadRazorpay(
@@ -102,8 +63,8 @@ const PaymentForm = () => {
         };
         settId(response.razorpay_payment_id);
         setPaymentDone(true);
-        setTimeout(() => generatePDF(), 500); // wait for render
-        toast.success("Payment successful! Downloading receipt...");
+        // setTimeout(() => generatePDF(), 500); // wait for render
+        toast.success("Payment successful! Receipt Generated...");
       },
 
       prefill: {
