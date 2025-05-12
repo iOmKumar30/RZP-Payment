@@ -8,7 +8,16 @@ const App = () => {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <Routes>
           <Route path="/" element={<PaymentForm />} />
-          <Route path="/receipt" element={<ReceiptPage />} />
+          <Route
+            path="/receipt"
+            element={
+              sessionStorage.getItem("transaction_id") != null ? (
+                <ReceiptPage />
+              ) : (
+                <PaymentForm />
+              )
+            }
+          />
         </Routes>
       </div>
     </Router>
