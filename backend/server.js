@@ -4,7 +4,10 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: "https://rzp-payment.vercel.app/",
+    credentials: true
+}));
 app.use(express.json());
 
 const paymentRoutes = require("./routes/payment");
