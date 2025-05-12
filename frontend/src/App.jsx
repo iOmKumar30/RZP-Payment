@@ -1,11 +1,17 @@
-import React from 'react';
-import PaymentForm from './components/PaymentForm';
-
+import React from "react";
+import PaymentForm from "./components/PaymentForm";
+import ReceiptPage from "./components/ReceiptPage";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 const App = () => {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <PaymentForm />
-    </div>
+    <Router>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <Routes>
+          <Route path="/" element={<PaymentForm />} />
+          <Route path="/receipt" element={<ReceiptPage />} />
+        </Routes>
+      </div>
+    </Router>
   );
 };
 

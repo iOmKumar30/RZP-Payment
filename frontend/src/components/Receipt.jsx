@@ -10,27 +10,19 @@ const Receipt = React.forwardRef(({ paymentDetails }, ref) => {
 
     setTimeout(() => {
       html2canvas(receiptElement, {
-        scale: 2,
-        backgroundColor: "white",
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#ffffff",
       }).then((canvas) => {
         const imgData = canvas.toDataURL("image/png");
-        const imgWidth = 210;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-        const pdf = new jsPDF("p", "mm", "a4");
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "px",
+          format: [canvas.width, canvas.height],
+        });
 
-        let heightLeft = imgHeight;
-        let position = 0;
-
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= 297;
-
-        while (heightLeft > 0) {
-          position -= 297;
-          pdf.addPage();
-          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-          heightLeft -= 297;
-        }
+        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
         pdf.save("receipt.pdf");
       });
     }, 500);

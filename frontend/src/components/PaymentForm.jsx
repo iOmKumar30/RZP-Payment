@@ -6,6 +6,7 @@ import "./PaymentForm.css"; // Custom CSS for animations
 import { loadRazorpay } from "../utils/loadRazorpay";
 import axios from "axios";
 import Receipt from "./Receipt";
+import { useNavigate } from "react-router-dom";
 
 const PaymentForm = () => {
   const [name, setName] = useState("");
@@ -19,7 +20,7 @@ const PaymentForm = () => {
   const receiptRef = useRef();
   const [tId, settId] = useState("");
   const [paymentDone, setPaymentDone] = useState(false);
-
+  const navigate = useNavigate();
   const handlePayment = async () => {
     const res = await loadRazorpay(
       "https://checkout.razorpay.com/v1/checkout.js"
@@ -63,7 +64,15 @@ const PaymentForm = () => {
         };
         settId(response.razorpay_payment_id);
         setPaymentDone(true);
-        // setTimeout(() => generatePDF(), 500); // wait for render
+        // clear form data after successful payment
+        setName("");
+        setAddress("");
+        setAmount("");
+        setReason("");
+        setSelectedMethod("");
+        setContact("");
+        setEmail("");
+        navigate("/receipt", { state: details });
         toast.success("Payment successful! Receipt Generated...");
       },
 
@@ -236,25 +245,6 @@ const PaymentForm = () => {
       </form>
 
       <ToastContainer position="top-center" />
-      <div className="mt-8">
-        {" "}
-        {paymentDone && (
-          <Receipt
-            ref={receiptRef}
-            paymentDetails={{
-              name,
-              contact,
-              email,
-              address,
-              amount,
-              reason,
-              method: selectedMethod,
-              transactionId: tId, // overridden in generatePDF
-              date: new Date().toLocaleString(),
-            }}
-          />
-        )}
-      </div>
     </div>
   );
 };
