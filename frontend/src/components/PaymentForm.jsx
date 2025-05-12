@@ -33,7 +33,7 @@ const PaymentForm = () => {
 
     // Create order from backend
     const result = await axios.post(
-      "http://localhost:5000/api/payment/create-order",
+      "https://rzp-payment-backend.onrender.com/api/payment/create-order",
       {
         amount: parseFloat(amount), // assuming amount is a float string
       }
