@@ -12,7 +12,7 @@ const PaymentForm = () => {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("");
-  const [reason, setReason] = useState("");
+  const [purpose, setPurpose] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("");
   const [contact, setContact] = useState("");
@@ -20,6 +20,7 @@ const PaymentForm = () => {
   const receiptRef = useRef();
   const [tId, settId] = useState("");
   const [paymentDone, setPaymentDone] = useState(false);
+  const [otherReason, setOtherReason] = useState("");
   const navigate = useNavigate();
   const handlePayment = async () => {
     const res = await loadRazorpay(
@@ -32,14 +33,16 @@ const PaymentForm = () => {
     }
 
     // Create order from backend
+    // "https://rzp-payment-backend.onrender.com/api/payment/create-order"
     const result = await axios.post(
-      "https://rzp-payment-backend.onrender.com/api/payment/create-order",
+      "http://localhost:5000/api/payment/create-order",
       {
         amount: parseFloat(amount), // assuming amount is a float string
       }
     );
 
     const { amount: orderAmount, id: order_id, currency } = result.data;
+    const reason = purpose === "Other" ? otherReason : purpose;
 
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID, // use VITE_ prefix in .env
@@ -48,7 +51,7 @@ const PaymentForm = () => {
       name: name,
       description: reason,
       order_id,
-      handler: function (response) {
+      handler: async function (response) {
         console.log("Payment successful:", response);
 
         const details = {
@@ -62,19 +65,21 @@ const PaymentForm = () => {
           transactionId: response.razorpay_payment_id,
           date: new Date().toLocaleString(),
         };
+
         settId(response.razorpay_payment_id);
         setPaymentDone(true);
+
         // clear form data after successful payment
         setName("");
         setAddress("");
         setAmount("");
-        setReason("");
+        setPurpose("");
         setSelectedMethod("");
         setContact("");
         setEmail("");
         // delay the navigate a little bit
 
-        navigate("/receipt", { state: details });
+        navigate("/pancard", { state: details });
 
         // store the transaction id in the session storage
         sessionStorage.setItem("transaction_id", response.razorpay_payment_id);
@@ -109,6 +114,19 @@ const PaymentForm = () => {
 
     if (isNaN(parseFloat(amount))) {
       toast.error("Amount must be a valid number");
+      return;
+    }
+
+    if (
+      !name ||
+      !address ||
+      !amount ||
+      !purpose ||
+      !selectedMethod ||
+      !contact ||
+      !email
+    ) {
+      toast.error("Please fill all the fields");
       return;
     }
 
@@ -150,8 +168,15 @@ const PaymentForm = () => {
             </label>
             <input
               type="tel"
+              pattern="[0-9]{10}"
+              inputMode="numeric"
               value={contact}
-              onChange={(e) => setContact(e.target.value)}
+              onChange={(e) => {
+                const cleanedValue = e.target.value
+                  .replace(/\D/g, "")
+                  .slice(0, 10);
+                setContact(cleanedValue);
+              }}
               className="w-full px-4 py-2 mt-1 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400"
               placeholder="9876543210"
               required
@@ -192,9 +217,15 @@ const PaymentForm = () => {
             </label>
             <input
               type="number"
+              min="1"
               step="0.01"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (Number(value) >= 1 || value === "") {
+                  setAmount(value);
+                }
+              }}
               className="w-full px-4 py-2 mt-1 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400"
               placeholder="1000.00"
               required
@@ -219,16 +250,32 @@ const PaymentForm = () => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Reason
+            Purpose of Donation
           </label>
-          <input
-            type="text"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            className="w-full px-4 py-2 mt-1 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400"
-            placeholder="e.g., Rent, Gift, etc."
-            required
-          />
+          <select
+            value={purpose}
+            onChange={(e) => setPurpose(e.target.value)}
+            className="w-full px-4 py-2 mt-1 border rounded-md"
+          >
+            <option value="">Select a Purpose</option>
+            <option value="Membership">Membership</option>
+            <option value="Sahaaj Pathshala">Sahaaj Pathshala</option>
+            <option value="Sahaaj Poshan">Sahaaj Poshan</option>
+            <option value="Environment">Environment</option>
+            <option value="Empowerment">Empowerment</option>
+            <option value="Education aids">Education aids</option>
+            <option value="Corpus">Corpus</option>
+            <option value="Other">Other</option>
+          </select>
+          {purpose === "Other" && (
+            <input
+              type="text"
+              value={otherReason}
+              onChange={(e) => setOtherReason(e.target.value)}
+              className="w-full px-4 py-2 mt-1 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400"
+              placeholder="Purpose"
+            />
+          )}
         </div>
 
         <button

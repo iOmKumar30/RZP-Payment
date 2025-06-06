@@ -1,7 +1,7 @@
 // ReceiptPage.jsx
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Receipt from "./Receipt";
+import Receipt from "../components/Receipt";
 
 const ReceiptPage = () => {
   const { state } = useLocation();

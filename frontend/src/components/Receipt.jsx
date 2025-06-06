@@ -1,102 +1,205 @@
 import React from "react";
-import success from "../assets/success.png";
-import thanks from "../assets/thanks.png";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
-
+import headerImage from "../assets/relearn_header.png";
+import { ToWords } from "to-words";
 const Receipt = React.forwardRef(({ paymentDetails }, ref) => {
   const downloadImage = () => {
-    const receiptElement = document.getElementById("capture-wrapper");
+    const receiptElement = document.getElementById("receipt");
 
     setTimeout(() => {
       html2canvas(receiptElement, {
-        scale: 4, 
+        scale: 4,
         useCORS: true,
         backgroundColor: "#ffffff",
+        scrollY: -window.scrollY,
+        windowWidth: receiptElement.scrollWidth,
+        windowHeight: receiptElement.scrollHeight,
       }).then((canvas) => {
         const imgData = canvas.toDataURL("image/png");
+        const pdfWidth = 595.28; // A4 width in px at 72 DPI
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
         const pdf = new jsPDF({
           orientation: "portrait",
-          unit: "px",
-          format: [canvas.width, canvas.height],
+          unit: "pt",
+          format: [pdfWidth, pdfHeight],
         });
 
-        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-        pdf.save("receipt.pdf");
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        pdf.save("RELF-donation-receipt.pdf");
       });
     }, 500);
   };
 
+  const toWords = new ToWords({
+    localeCode: "en-IN",
+    converterOptions: {
+      currency: true,
+      ignoreDecimal: false,
+      ignoreZeroCurrency: false,
+      doNotAddOnly: false,
+    },
+  });
   return (
     <>
       <div
         id="capture-wrapper"
-        className="p-6 bg-gray-100 flex justify-center items-center min-h-screen"
+        className="bg-gray-100 min-h-screen flex items-center justify-center py-15 px-4 "
       >
         <div
           ref={ref}
           id="receipt"
-          className="p-6 bg-white rounded-3xl shadow-2xl ring-4 ring-blue-200 w-full max-w-md text-gray-800 relative overflow-hidden font-sans tracking-wide leading-relaxed"
+          className="bg-white border border-gray-300 shadow-xl pt-0 px-8 pb-8 rounded-lg w-full max-w-2xl text-gray-800 font-sans leading-relaxed animate-slideUp"
         >
-          <div className="flex justify-center mb-4">
-            <img src={success} alt="Payment Success" className="w-20 h-20" />
+          <div className="text-center mb-6">
+            <img
+              src={headerImage}
+              alt="Relearn Foundation Header"
+              className="w-full max-w-full"
+            />
           </div>
 
-          <h2 className="text-2xl font-extrabold text-center mb-6 text-green-600 tracking-wide">
-            Payment Successful
-          </h2>
-
-          <div className="space-y-3 text-[15px]">
+          <div className="text-left text-sm text-black mb-6 leading-relaxed space-y-1">
             <p>
-              <span className="font-semibold">Payer Name:</span>{" "}
-              {paymentDetails.name}
+              <strong>Relearn Foundation</strong>
             </p>
-            <p>
-              <span className="font-semibold">Contact:</span>{" "}
-              {paymentDetails.contact}
+            <p className="text-black font-semibold">
+              2681, Vijaya Gardens, Baridih, Jamshedpur, Jharkhand 831017
             </p>
-            <p>
-              <span className="font-semibold">Email:</span>{" "}
-              {paymentDetails.email}
+            <p className="text-black font-semibold">PAN: AACTR5805Q</p>
+            <p className="text-black font-semibold">
+              80G Registration Number: AACTR5805Q23PT02 dated 22-05-2024
             </p>
-            <p>
-              <span className="font-semibold">Address:</span>{" "}
-              {paymentDetails.address}
+            <p className="text-black font-semibold">
+              12A Registration Number: AACTR5805Q23PT01 dated 22-05-2024
             </p>
-            <p>
-              <span className="font-semibold">Amount:</span> ₹
-              {paymentDetails.amount}
-            </p>
-            <p>
-              <span className="font-semibold">Reason:</span>{" "}
-              {paymentDetails.reason}
-            </p>
-            <p>
-              <span className="font-semibold">Payment Method:</span>{" "}
-              {paymentDetails.method.toUpperCase()}
-            </p>
-            <p>
-              <span className="font-semibold">Transaction ID:</span>{" "}
-              {paymentDetails.transactionId}
-            </p>
-            <p>
-              <span className="font-semibold">Date:</span> {paymentDetails.date}
+            <p className="text-black font-semibold">GST No: 20AACTR5805Q2Z9</p>
+            <p className="text-black font-semibold">
+              CSR-1: CSR00012310 (MINISTRY OF CORPORATE AFFAIRS)
             </p>
           </div>
 
-          <div className="flex justify-center items-center mt-6 text-xs italic text-gray-500">
-            <span className="mr-1">Thank you for your payment</span>
-            <img src={thanks} alt="Thanks Icon" className="w-4 h-4" />
+          <hr className="my-4 border-t-2 border-black" />
+
+          <hr className="my-4 border-t-2 border-black" />
+
+          <div className="flex justify-between items-center text-sm font-medium text-gray-800 mb-4">
+            <p>
+              Receipt No: <span>RELF/FY 24-25/001</span>
+            </p>
+            <p>
+              Date: <span>{paymentDetails.date.split(",")[0]}</span>
+            </p>
+          </div>
+
+          <div className="text-gray-800 text-sm leading-relaxed mb-6">
+            <h2 className="text-lg font-semibold mb-2 text-center">
+              <strong>Donation Receipt</strong>
+            </h2>
+            <p className="mb-3 font-semibold">Thank you for your donation.</p>
+            <p>
+              The amount you have given will make a difference as the proceeds
+              help the Relearn Foundation to implement our mission in the areas
+              of Education, Environment and Empowerment. This receipt is an
+              attestation that we have gratefully received your generous
+              contribution. Keep this receipt for your tax filing purposes.
+            </p>
+          </div>
+
+          <div className="mb-4 text-sm">
+            <p>
+              <strong>Purpose:</strong> {paymentDetails.reason}
+            </p>
+            <p>
+              <strong>Donor's Name:</strong> {paymentDetails.name}
+            </p>
+            <p>
+              <strong>Donor's Address:</strong> {paymentDetails.address}
+            </p>
+            {paymentDetails.pan && (
+              <p>
+                <strong>Donor's PAN No:</strong> {paymentDetails.pan}
+              </p>
+            )}
+            <p>
+              <strong>Donor's Mobile No:</strong> {paymentDetails.contact}
+            </p>
+            <p>
+              <strong>Donor's Email:</strong> {paymentDetails.email}
+            </p>
+          </div>
+
+          <div className="mb-4 text-sm">
+            <p>
+              <strong>Donation Amount:</strong> ₹
+              {parseFloat(paymentDetails.amount).toFixed(2)}
+            </p>
+            <p>
+              <strong>In words:</strong>{" "}
+              {toWords.convert(paymentDetails.amount)}
+            </p>
+
+            <p>
+              <strong>Mode of Payment:</strong>{" "}
+              {paymentDetails.method?.toUpperCase()}
+            </p>
+            <p>
+              <strong>Transaction Ref No.:</strong>{" "}
+              {paymentDetails.transactionId || "N/A"}
+            </p>
+            <p>
+              <strong>Date Received:</strong> {paymentDetails.date}
+            </p>
+          </div>
+
+          <div className="mt-6 text-sm text-gray-800 leading-relaxed">
+            <p className="font-semibold">Authorized Signatory</p>
+            <p>Name: Dr Mita Tarafder</p>
+            <p>Mobile No: 9852193175</p>
+
+            <hr className="my-4 border-t border-gray-400" />
+
+            <p className="italic text-gray-600">
+              Donations made to Relearn Foundation (PAN-AACTR5805Q) are eligible
+              for tax deduction under section 12A/80G. This is an autogenerated
+              receipt.
+            </p>
+          </div>
+
+          <div className="mt-10 text-xs text-gray-600 text-center">
+            <div className="flex items-center justify-center mb-1">
+              <div className="flex-grow border-t border-gray-400 mx-2"></div>
+              <span>relearn2015@gmail.com &nbsp; | &nbsp; +91-9334041104</span>
+              <div className="flex-grow border-t border-gray-400 mx-2"></div>
+            </div>
+            <p>
+              2681 Vijaya Garden, Baridih, Jamshedpur - 831017 &nbsp;{" "}
+              <span className="ml-2">
+                Reg No: <strong>755/160</strong>
+              </span>
+            </p>
+            <p className="mt-1">
+              Website:{" "}
+              <a
+                href="https://relf.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
+                https://relf.in/
+              </a>
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="text-center -mt-12">
+      <div className="text-center mt-4">
         <button
           onClick={downloadImage}
-          className="px-6 mb-3 py-3 cursor-pointer text-white font-semibold rounded-lg shadow bg-blue-600 hover:bg-blue-700 transition duration-200"
+          className="px-6 py-3 text-white font-semibold rounded-lg shadow bg-blue-600 hover:bg-blue-700 transition cusror-pointer"
         >
-          Download
+          Download PDF
         </button>
       </div>
     </>
