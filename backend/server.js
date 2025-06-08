@@ -8,11 +8,11 @@ dotenv.config();
 
 const app = express();
 
-// CORS setup (adjust frontend domain if needed)
+// (adjust frontend domain as needed)
 // "https://rzp-payment.vercel.app"
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
   })
 );
@@ -20,10 +20,8 @@ app.use(
 app.use(express.json());
 app.use(morgan("dev"));
 
-// Connect DB
 connectDB();
 
-// Routes
 const paymentRoutes = require("./routes/payment");
 const donationRoutes = require("./routes/donationRoutes");
 

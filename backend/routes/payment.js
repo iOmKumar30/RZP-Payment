@@ -20,6 +20,7 @@ router.post("/create-order", async (req, res) => {
     const order = await instance.orders.create(options);
     res.json(order);
   } catch (err) {
+    console.error("Error creating order:", err);
     res.status(500).json({ error: "Order creation failed" });
   }
 });

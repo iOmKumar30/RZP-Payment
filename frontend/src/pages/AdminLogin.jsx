@@ -8,8 +8,14 @@ const AdminLogin = () => {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    if (password === import.meta.env.VITE_REACT_APP_ADMIN_PASSWORD) {
-      localStorage.setItem("relf_admin", true);
+    const adminPassword = import.meta.env.VITE_REACT_APP_ADMIN_PASSWORD;
+    if (!adminPassword) {
+      toast.error("Admin password is not configured. Please contact support.");
+      return;
+    }
+
+    if (password === adminPassword) {
+      localStorage.setItem("relf_admin", "true");
       navigate("/admin/donations");
     } else {
       toast.error("Invalid password. Please try again.", {
@@ -29,19 +35,32 @@ const AdminLogin = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="bg-white shadow-lg rounded-xl p-6 w-full max-w-sm">
         <h2 className="text-2xl font-bold text-center mb-4">🔐 Admin Login</h2>
-        <input
-          type="password"
-          placeholder="Enter Admin Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={handleLogin}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold"
+        <form
+          onSubmit={(e) => {
+            e.preventDefault(); 
+            if (password) handleLogin();
+          }}
         >
-          Login
-        </button>
+          <input
+            type="password"
+            placeholder="Enter Admin Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="submit" 
+            disabled={!password}
+            className={`w-full py-2 rounded-lg font-semibold transition
+            ${
+              !password
+                ? "bg-blue-300 text-white cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+            }`}
+          >
+            Login
+          </button>
+        </form>
       </div>
       <ToastContainer position="top-center" />
     </div>

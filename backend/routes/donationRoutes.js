@@ -1,4 +1,3 @@
-/*************  ✨ Windsurf Command 🌟  *************/
 const express = require("express");
 const {
   saveDonation,
@@ -11,10 +10,10 @@ const donationRouter = express.Router();
 
 donationRouter.post("/", saveDonation);
 donationRouter.get("/recent", listRecent);
-donationRouter.get("/download", downloadExcel); // ?from=YYYY-MM-DD&to=YYYY-MM-DD
-donationRouter.get("/", listByDate); // list with optional date filters
-
+donationRouter.get("/download", downloadExcel); 
+donationRouter.get("/", listByDate); 
 
 module.exports = donationRouter;
+
 
 

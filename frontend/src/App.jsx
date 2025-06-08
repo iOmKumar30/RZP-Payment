@@ -7,25 +7,62 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
+
 const App = () => {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <Routes>
-          <Route path="/" element={<PaymentForm />} />
-          <Route path="/receipt" element={<ReceiptPage />} />
-          <Route path="/pancard" element={<PanPrompt />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin/donations"
-            element={
-              <ProtectedRoute>
-                <DonationDashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </div>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+              <PaymentForm />
+            </div>
+          }
+        />
+        <Route
+          path="/receipt"
+          element={
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+              <ReceiptPage />
+            </div>
+          }
+        />
+        <Route
+          path="/pancard"
+          element={
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+              <PanPrompt />
+            </div>
+          }
+        />
+        <Route
+          path="/admin/login"
+          element={
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+              <AdminLogin />
+            </div>
+          }
+        />
+
+        <Route
+          path="/admin/donations"
+          element={
+            <ProtectedRoute>
+              <DonationDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen flex items-center justify-center text-red-500 text-2xl font-bold">
+              404 - Page Not Found
+            </div>
+          }
+        />
+      </Routes>
     </Router>
   );
 };

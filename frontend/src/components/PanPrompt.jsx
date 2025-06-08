@@ -6,7 +6,7 @@ const PanPrompt = () => {
   const { state: paymentDetails } = useLocation();
   const navigate = useNavigate();
   const [pan, setPan] = useState("");
-
+  const [isLoading, setIsLoading] = useState(false);
   if (!paymentDetails) {
     // if someone lands here directly
     navigate("/");
@@ -14,33 +14,46 @@ const PanPrompt = () => {
   }
 
   const handleSubmit = async () => {
+    if (isLoading) return; // prevent multiple submissions
     const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 
     if (!panRegex.test(pan)) {
       toast.error("Invalid PAN number. Please enter a valid one.");
       return;
     }
-
+    setIsLoading(true);
     // if PAN is valid, proceed to receipt generation
     const detailsWithPan = { ...paymentDetails, pan };
+    let res;
     try {
-      await saveDonation(detailsWithPan);
-      console.log("Donation saved successfully to DB");
+      res = await saveDonation(detailsWithPan);
     } catch (err) {
       console.error("Error saving donation:", err);
       toast.error("Error saving donation to database!");
+      setIsLoading(false);
+      return;
     }
-    navigate("/receipt", { state: detailsWithPan });
+    setIsLoading(false);
+    navigate("/receipt", {
+      state: {
+        ...detailsWithPan,
+        receiptNumber: res.receiptNumber,
+      },
+    });
   };
 
   const handleSkip = async () => {
+    if (isLoading) return; // prevent multiple submissions
+    setIsLoading(true);
     try {
       await saveDonation(paymentDetails);
-      console.log("Donation saved successfully to DB");
     } catch (err) {
       console.error("Error saving donation:", err);
       toast.error("Error saving donation to database!");
+      setIsLoading(false);
+      return;
     }
+    setIsLoading(false);
     toast.info("You skipped downloading the receipt.");
     navigate("/");
   };
@@ -67,14 +80,26 @@ const PanPrompt = () => {
 
         <button
           onClick={handleSubmit}
-          className="w-full mb-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className={`w-full mb-3 py-2 rounded transition 
+    ${
+      isLoading
+        ? "bg-blue-300 text-white cursor-not-allowed"
+        : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+    }`}
+          disabled={isLoading}
         >
           Generate Receipt
         </button>
 
         <button
           onClick={handleSkip}
-          className="w-full py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition"
+          className={`w-full py-2 rounded transition 
+    ${
+      isLoading
+        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+        : "bg-gray-300 text-gray-700 hover:bg-gray-400 cursor-pointer"
+    }`}
+          disabled={isLoading}
         >
           Skip & Exit
         </button>

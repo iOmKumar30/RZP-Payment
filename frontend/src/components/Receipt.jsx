@@ -15,20 +15,23 @@ const Receipt = React.forwardRef(({ paymentDetails }, ref) => {
         scrollY: -window.scrollY,
         windowWidth: receiptElement.scrollWidth,
         windowHeight: receiptElement.scrollHeight,
-      }).then((canvas) => {
-        const imgData = canvas.toDataURL("image/png");
-        const pdfWidth = 595.28; // A4 width in px at 72 DPI
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      })
+        .then((canvas) => {
+          const imgData = canvas.toDataURL("image/png");
+          const pdfWidth = 595.28; // A4 width in px at 72 DPI
+          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-        const pdf = new jsPDF({
-          orientation: "portrait",
-          unit: "pt",
-          format: [pdfWidth, pdfHeight],
+          const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "pt",
+            format: [pdfWidth, pdfHeight],
+          });
+
+          pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+          pdf.save("RELF-donation-receipt.pdf");
+        })
+        .catch((error) => {
         });
-
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save("RELF-donation-receipt.pdf");
-      });
     }, 500);
   };
 
@@ -41,6 +44,23 @@ const Receipt = React.forwardRef(({ paymentDetails }, ref) => {
       doNotAddOnly: false,
     },
   });
+  const isoDate = paymentDetails.date;
+  const formattedDate = new Date(isoDate).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+  const formattedDateandTime = new Date(isoDate).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
   return (
     <>
       <div
@@ -86,10 +106,10 @@ const Receipt = React.forwardRef(({ paymentDetails }, ref) => {
 
           <div className="flex justify-between items-center text-sm font-medium text-gray-800 mb-4">
             <p>
-              Receipt No: <span>RELF/FY 24-25/001</span>
+              Receipt No: <span>{paymentDetails.receiptNumber}</span>
             </p>
             <p>
-              Date: <span>{paymentDetails.date.split(",")[0]}</span>
+              Date: <span>{formattedDate}</span>
             </p>
           </div>
 
@@ -149,7 +169,7 @@ const Receipt = React.forwardRef(({ paymentDetails }, ref) => {
               {paymentDetails.transactionId || "N/A"}
             </p>
             <p>
-              <strong>Date Received:</strong> {paymentDetails.date}
+              <strong>Date Received:</strong> {formattedDateandTime}
             </p>
           </div>
 

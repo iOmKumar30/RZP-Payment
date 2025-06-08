@@ -7,7 +7,8 @@ import { loadRazorpay } from "../utils/loadRazorpay";
 import axios from "axios";
 import Receipt from "./Receipt";
 import { useNavigate } from "react-router-dom";
-
+import logo from "../assets/relearn_logo-removebg-preview.png";
+import "../styles/PaymentForm.css";
 const PaymentForm = () => {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -34,12 +35,18 @@ const PaymentForm = () => {
 
     // Create order from backend
     // "https://rzp-payment-backend.onrender.com/api/payment/create-order"
-    const result = await axios.post(
-      "http://localhost:5000/api/payment/create-order",
-      {
-        amount: parseFloat(amount), // assuming amount is a float string
-      }
-    );
+    let result;
+    try {
+      result = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/payment/create-order`,
+        { amount: parseFloat(amount) }
+      );
+    } catch (error) {
+      toast.error("Failed to initiate payment. Please try again.");
+      console.error("Error creating Razorpay order:", error);
+      setIsLoading(false);
+      return;
+    }
 
     const { amount: orderAmount, id: order_id, currency } = result.data;
     const reason = purpose === "Other" ? otherReason : purpose;
@@ -52,7 +59,6 @@ const PaymentForm = () => {
       description: reason,
       order_id,
       handler: async function (response) {
-        console.log("Payment successful:", response);
 
         const details = {
           name,
@@ -63,7 +69,7 @@ const PaymentForm = () => {
           reason,
           method: selectedMethod,
           transactionId: response.razorpay_payment_id,
-          date: new Date().toLocaleString(),
+          date: new Date().toISOString(),
         };
 
         settId(response.razorpay_payment_id);
@@ -102,7 +108,6 @@ const PaymentForm = () => {
         card: selectedMethod === "card",
         upi: selectedMethod === "upi",
         wallet: selectedMethod === "wallet",
-        paylater: selectedMethod === "paylater",
       },
     };
 
@@ -144,14 +149,25 @@ const PaymentForm = () => {
 
   return (
     <div className="animate-slideUp bg-gradient-to-br from-white via-gray-100 to-white shadow-xl rounded-2xl max-w-2xl mx-auto p-8 mt-16 border border-blue-100">
-      <h2 className="text-3xl font-extrabold text-center mb-6 text-gray-800">
-        ✨ Send a Payment
-      </h2>
+      <div className="flex flex-col items-center mb-8">
+        <img
+          src={logo}
+          alt="Relearn Logo"
+          className="w-30 h-30 mb-4 animate-fadeInScale"
+        />
+        <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-teal-400">
+          Make a Donation
+        </h2>
+        <p className="text-sm text-gray-500 mt-2 animate-fadeInScale delay-200">
+          Support our mission ✨
+        </p>{" "}
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Payer's Name
+              Donor's Name
             </label>
             <input
               type="text"
@@ -285,13 +301,13 @@ const PaymentForm = () => {
       ${
         isLoading
           ? "bg-gray-400 cursor-not-allowed"
-          : "bg-blue-600 hover:bg-blue-700 shadow-md"
+          : "bg-green-600 hover:bg-green-700 shadow-md"
       }`}
         >
           {isLoading ? (
             <FaSpinner className="animate-spin h-5 w-5" />
           ) : (
-            "Send Payment"
+            "Donate"
           )}
         </button>
       </form>
