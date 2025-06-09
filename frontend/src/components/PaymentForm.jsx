@@ -108,6 +108,7 @@ const PaymentForm = () => {
         card: selectedMethod === "card",
         upi: selectedMethod === "upi",
         wallet: selectedMethod === "wallet",
+        paylater: selectedMethod === "paylater",
       },
     };
 
