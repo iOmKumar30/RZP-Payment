@@ -90,7 +90,7 @@ const DonationDashboard = () => {
       if (search.trim() !== "") {
         fetchSearch();
       } else {
-        getRecent(); // when search cleared → show normal list
+        getRecent(); // when search cleared, show normal list
       }
     }, 500);
 
@@ -194,7 +194,10 @@ const DonationDashboard = () => {
 
         <div className="flex justify-center mt-4 gap-4">
           <button
-            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() => {
+              setLoading(true);
+              setPage((prev) => Math.max(prev - 1, 1));
+            }}
             disabled={page === 1}
             className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
           >
@@ -206,7 +209,10 @@ const DonationDashboard = () => {
           </span>
 
           <button
-            onClick={() => setPage((prev) => prev + 1)}
+            onClick={() => {
+              setLoading(true);
+              setPage((prev) => prev + 1);
+            }}
             disabled={page >= Math.ceil(totalCount / pageSize)}
             className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
           >
