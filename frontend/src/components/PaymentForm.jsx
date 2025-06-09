@@ -9,7 +9,9 @@ import Receipt from "./Receipt";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/relearn_logo-removebg-preview.png";
 import "../styles/PaymentForm.css";
+import useBackButtonWarning from "../hooks/useBackButtonWarning";
 const PaymentForm = () => {
+
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("");
@@ -75,7 +77,7 @@ const PaymentForm = () => {
         settId(response.razorpay_payment_id);
         setPaymentDone(true);
 
-        // clear form data after successful payment
+      
         setName("");
         setAddress("");
         setAmount("");
@@ -83,11 +85,11 @@ const PaymentForm = () => {
         setSelectedMethod("");
         setContact("");
         setEmail("");
-        // delay the navigate a little bit
+        
 
         navigate("/pancard", { state: details });
 
-        // store the transaction id in the session storage
+      
         sessionStorage.setItem("transaction_id", response.razorpay_payment_id);
         toast.success("Payment successful! Receipt Generated...");
       },

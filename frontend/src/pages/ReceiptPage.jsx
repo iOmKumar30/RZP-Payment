@@ -2,12 +2,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import Receipt from "../components/Receipt";
 import { useEffect } from "react";
-
+import useBackButtonWarning from "../hooks/useBackButtonWarning";
 const ReceiptPage = () => {
+  useBackButtonWarning(true);
   const { state } = useLocation();
   const navigate = useNavigate();
 
-useEffect(() => {
+  useEffect(() => {
     if (!state) {
       navigate("/");
     }

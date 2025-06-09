@@ -13,5 +13,10 @@ const donationSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  transactionId: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 });
 module.exports = mongoose.model("Donation", donationSchema);

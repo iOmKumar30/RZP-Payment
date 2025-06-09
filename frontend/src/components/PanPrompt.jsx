@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { saveDonation } from "../services/donationAPI";
+import useBackButtonWarning from "../hooks/useBackButtonWarning";
 const PanPrompt = () => {
+
   const { state: paymentDetails } = useLocation();
   const navigate = useNavigate();
   const [pan, setPan] = useState("");
@@ -45,9 +47,14 @@ const PanPrompt = () => {
   const handleSkip = async () => {
     if (isLoading) return; // prevent multiple submissions
     setIsLoading(true);
+    let res;
     try {
-      await saveDonation(paymentDetails);
+      res = await saveDonation(paymentDetails);
     } catch (err) {
+      if (err.response?.status === 409) {
+        navigate("/");
+        return;
+      }
       console.error("Error saving donation:", err);
       toast.error("Error saving donation to database!");
       setIsLoading(false);

@@ -6,13 +6,20 @@ const getFinancialYear = require("../utils/getFinancialYear");
 
 const saveDonation = async (req, res) => {
   try {
+    const { transactionId } = req.body;
+    const existingDonation = await Donation.findOne({ transactionId });
+    if (existingDonation) {
+      return res
+        .status(409)
+        .json({ error: "This transaction has already been processed." });
+    }
     const financialYear = getFinancialYear();
 
     // Atomically increment counter for this FY:
     const counter = await Counter.findOneAndUpdate(
       { financialYear },
       { $inc: { seq: 1 } },
-      { new: true, upsert: true } 
+      { new: true, upsert: true }
     );
 
     const serialNumber = counter.seq.toString().padStart(3, "0");
@@ -20,12 +27,14 @@ const saveDonation = async (req, res) => {
 
     const donation = new Donation({
       ...req.body,
-      receiptNumber, 
+      receiptNumber,
     });
 
     await donation.save();
 
-    res.status(201).json({ message: "Donation saved", donation, receiptNumber });
+    res
+      .status(201)
+      .json({ message: "Donation saved", donation, receiptNumber });
   } catch (error) {
     console.error("Error saving donation:", error);
     res.status(500).json({ error: "Error saving donation" });
