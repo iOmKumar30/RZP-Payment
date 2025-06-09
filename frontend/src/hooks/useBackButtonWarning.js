@@ -1,28 +1,40 @@
-import { useEffect } from "react";
-import { useNavigate, UNSAFE_NavigationContext } from "react-router-dom";
-import { useContext } from "react";
+import { useEffect, useContext } from "react";
+import { UNSAFE_NavigationContext } from "react-router-dom";
 
-function useBackButtonWarning(when = true, message = "Are you sure you want to leave this page?") {
+function clearAllBrowserData() {
+  localStorage.clear();
+  sessionStorage.clear();
+}
+
+function useBackButtonWarning(
+  when = true,
+  message = "Are you sure you want to leave this page? All data will be cleared."
+) {
   const navigator = useContext(UNSAFE_NavigationContext).navigator;
 
   useEffect(() => {
     if (!when) return;
 
-    const push = navigator.push;
-    const replace = navigator.replace;
-
-    const blocker = (tx) => {
-      const confirm = window.confirm(message);
-      if (confirm) tx.retry();
-    };
-
     const unblock = navigator.block((tx) => {
       if (tx.location.pathname !== window.location.pathname) {
-        blocker(tx);
+        const confirmed = window.confirm(message);
+        if (confirmed) {
+          clearAllBrowserData();
+          window.location.replace("/"); 
+        }
       }
     });
 
-    return unblock;
-  }, [message, when]);
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = ""; // browsers require this to show a confirmation dialog
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      unblock();
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [when, message, navigator]);
 }
+
 export default useBackButtonWarning;
