@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, use } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { FaSpinner } from "react-icons/fa";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,7 +11,6 @@ import logo from "../assets/relearn_logo-removebg-preview.png";
 import "../styles/PaymentForm.css";
 import useBackButtonWarning from "../hooks/useBackButtonWarning";
 const PaymentForm = () => {
-
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("");
@@ -25,6 +24,7 @@ const PaymentForm = () => {
   const [paymentDone, setPaymentDone] = useState(false);
   const [otherReason, setOtherReason] = useState("");
   const navigate = useNavigate();
+  const otherReasonRef = useRef(null);
   const handlePayment = async () => {
     const res = await loadRazorpay(
       "https://checkout.razorpay.com/v1/checkout.js"
@@ -41,10 +41,15 @@ const PaymentForm = () => {
     try {
       result = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/payment/create-order`,
-        { amount: parseFloat(amount) }
+        { amount: parseFloat(amount) },
+        { timeout: 60000 }
       );
     } catch (error) {
-      toast.error("Failed to initiate payment. Please try again.");
+      if (error.code === "ECONNABORTED") {
+        toast.error("Request timed out. Please try again.");
+      } else {
+        toast.error("Failed to initiate payment. Please try again.");
+      }
       console.error("Error creating Razorpay order:", error);
       setIsLoading(false);
       return;
@@ -61,7 +66,6 @@ const PaymentForm = () => {
       description: reason,
       order_id,
       handler: async function (response) {
-
         const details = {
           name,
           contact,
@@ -77,7 +81,6 @@ const PaymentForm = () => {
         settId(response.razorpay_payment_id);
         setPaymentDone(true);
 
-      
         setName("");
         setAddress("");
         setAmount("");
@@ -85,11 +88,9 @@ const PaymentForm = () => {
         setSelectedMethod("");
         setContact("");
         setEmail("");
-        
 
         navigate("/pancard", { state: details });
 
-      
         sessionStorage.setItem("transaction_id", response.razorpay_payment_id);
         toast.success("Payment successful! Receipt Generated...");
       },
@@ -135,6 +136,11 @@ const PaymentForm = () => {
       !email
     ) {
       toast.error("Please fill all the fields");
+      return;
+    }
+
+    if (purpose === "Other" && !otherReason.trim()) {
+      toast.error("Please specify your purpose in the 'Other' field.");
       return;
     }
 
@@ -259,6 +265,9 @@ const PaymentForm = () => {
               onChange={(e) => setSelectedMethod(e.target.value)}
               className="w-full px-4 py-2 mt-1 border rounded-md"
             >
+              <option value="" disabled hidden>
+                Select a Method
+              </option>
               <option value="upi">UPI</option>
               <option value="card">Card</option>
               <option value="netbanking">Netbanking</option>
@@ -272,11 +281,19 @@ const PaymentForm = () => {
             Purpose of Donation
           </label>
           <select
+            required
             value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
+            onChange={(e) => {
+              setPurpose(e.target.value);
+              setTimeout(() => {
+                otherReasonRef.current?.focus();
+              }, 0);
+            }}
             className="w-full px-4 py-2 mt-1 border rounded-md"
           >
-            <option value="">Select a Purpose</option>
+            <option value="" disabled hidden>
+              Select a Purpose
+            </option>
             <option value="Membership">Membership</option>
             <option value="Sahaaj Pathshala">Sahaaj Pathshala</option>
             <option value="Sahaaj Poshan">Sahaaj Poshan</option>
@@ -289,6 +306,7 @@ const PaymentForm = () => {
           {purpose === "Other" && (
             <input
               type="text"
+              ref={otherReasonRef}
               value={otherReason}
               onChange={(e) => setOtherReason(e.target.value)}
               className="w-full px-4 py-2 mt-1 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400"
