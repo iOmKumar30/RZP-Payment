@@ -1,13 +1,14 @@
-const Donation = require("../models/Donation");
 const { buildExcel } = require("../utils/excel");
-
-const Counter = require("../models/Counter");
 const getFinancialYear = require("../utils/getFinancialYear");
+const { PrismaClient } = require("../generated/prisma");
 
+const prisma = new PrismaClient();
 const saveDonation = async (req, res) => {
   try {
     const { transactionId } = req.body;
-    const existingDonation = await Donation.findOne({ transactionId });
+    const existingDonation = await prisma.donation.findUnique({
+      where: { transactionId },
+    });
     if (existingDonation) {
       return res
         .status(409)
@@ -16,21 +17,22 @@ const saveDonation = async (req, res) => {
     const financialYear = getFinancialYear();
 
     // Atomically increment counter for this FY:
-    const counter = await Counter.findOneAndUpdate(
-      { financialYear },
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true }
-    );
+    // Using upsert for atomic increment
+    const counter = await prisma.counter.upsert({
+      where: { financialYear },
+      update: { seq: { increment: 1 } },
+      create: { financialYear, seq: 1 },
+    });
 
     const serialNumber = counter.seq.toString().padStart(3, "0");
     const receiptNumber = `RELF/FY ${financialYear}/${serialNumber}`;
 
-    const donation = new Donation({
-      ...req.body,
-      receiptNumber,
+    const donation = await prisma.donation.create({
+      data: {
+        ...req.body,
+        receiptNumber,
+      },
     });
-
-    await donation.save();
 
     res
       .status(201)
@@ -42,43 +44,48 @@ const saveDonation = async (req, res) => {
 };
 
 const listRecent = async (_req, res) => {
-  const data = await Donation.find().sort({ date: -1 }).limit(10);
+  const data = await prisma.donation.findMany({
+    orderBy: { date: "desc" },
+    take: 10,
+  });
   res.json(data);
 };
 
 const listByDate = async (req, res) => {
   try {
     const { from, to, skip = 0, limit = 10, search = "" } = req.query;
-    const query = {};
+    const where = {};
 
     if (from && to) {
-      query.date = {
-        $gte: new Date(from),
-        $lte: new Date(to + "T23:59:59.999Z"), // to include the entire end date(very last millisecond of that day)
+      where.date = {
+        gte: new Date(from),
+        lte: new Date(to + "T23:59:59.999Z"),
       };
     }
 
     if (search) {
-      const searchRegex = new RegExp(search, "i"); // case-insensitive
-      query.$or = [
-        { name: searchRegex },
-        { address: searchRegex },
-        { pan: searchRegex },
-        { reason: searchRegex },
-        { email: searchRegex },
-        { contact: searchRegex },
-        { receiptNumber: searchRegex },
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { address: { contains: search, mode: "insensitive" } },
+        { pan: { contains: search, mode: "insensitive" } },
+        { reason: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+        { contact: { contains: search, mode: "insensitive" } },
+        { receiptNumber: { contains: search, mode: "insensitive" } },
       ];
     }
-    const data = await Donation.find(query)
-      .sort({ date: -1 }) // latest first
-      .skip(parseInt(skip))
-      .limit(parseInt(limit));
 
-    const totalCount = await Donation.countDocuments(query);
+    const data = await prisma.donation.findMany({
+      where,
+      orderBy: { date: "desc" },
+      skip: parseInt(skip),
+      take: parseInt(limit),
+    });
+
+    const totalCount = await prisma.donation.count({ where });
     res.json({
       data,
-      totalCount, // send this so frontend can know total pages
+      totalCount,
     });
   } catch (error) {
     console.error("Error listing donations:", error);
@@ -88,15 +95,18 @@ const listByDate = async (req, res) => {
 
 const downloadExcel = async (req, res) => {
   const { from, to } = req.query;
-  const query = {};
+  const where = {};
 
   if (from || to) {
-    query.date = {};
-    if (from) query.date.$gte = new Date(from);
-    if (to) query.date.$lte = new Date(to + "T23:59:59.999Z");
+    where.date = {};
+    if (from) where.date.gte = new Date(from);
+    if (to) where.date.lte = new Date(to + "T23:59:59.999Z");
   }
 
-  const data = await Donation.find(query).sort({ date: -1 });
+  const data = await prisma.donation.findMany({
+    where,
+    orderBy: { date: "desc" },
+  });
 
   const formatted = data.map((d, i) => ({
     "SI NO.": i + 1,
@@ -106,7 +116,7 @@ const downloadExcel = async (req, res) => {
     "Address of Donor": d.address,
     "Type of Donation": d.reason,
     "Mode of Receipt": d.method,
-    "Amount of donation (INR)": d.amount.toFixed(2),
+    "Amount of donation (INR)": Number(d.amount).toFixed(2),
     "Date of Payment": new Date(d.date).toLocaleDateString("en-IN"),
   }));
 

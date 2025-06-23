@@ -20,8 +20,6 @@ app.use(
 app.use(express.json());
 app.use(morgan("dev"));
 
-connectDB();
-
 const paymentRoutes = require("./routes/payment");
 const donationRoutes = require("./routes/donationRoutes");
 

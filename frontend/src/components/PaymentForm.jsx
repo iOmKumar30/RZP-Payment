@@ -71,7 +71,7 @@ const PaymentForm = () => {
           contact,
           email,
           address,
-          amount,
+          amount: parseFloat(amount),
           reason,
           method: selectedMethod,
           transactionId: response.razorpay_payment_id,
