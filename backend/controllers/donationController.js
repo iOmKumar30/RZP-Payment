@@ -64,6 +64,7 @@ const listByDate = async (req, res) => {
     }
 
     if (search) {
+      const searchWords = search.trim().split(/\s+/).filter(Boolean);
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
         { address: { contains: search, mode: "insensitive" } },
@@ -72,6 +73,22 @@ const listByDate = async (req, res) => {
         { email: { contains: search, mode: "insensitive" } },
         { contact: { contains: search, mode: "insensitive" } },
         { receiptNumber: { contains: search, mode: "insensitive" } },
+
+        ...searchWords.map((word) => ({
+          AND: [
+            {
+              OR: [
+                { name: { contains: word, mode: "insensitive" } },
+                { address: { contains: word, mode: "insensitive" } },
+                { pan: { contains: word, mode: "insensitive" } },
+                { reason: { contains: word, mode: "insensitive" } },
+                { email: { contains: word, mode: "insensitive" } },
+                { contact: { contains: word, mode: "insensitive" } },
+                { receiptNumber: { contains: word, mode: "insensitive" } },
+              ],
+            },
+          ],
+        })),
       ];
     }
 
